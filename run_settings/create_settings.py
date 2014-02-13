@@ -239,7 +239,7 @@ def get_diamond_log():
                 'currentEnd': line[5].strip()
                 }
 
-    for i in diamondLog:
+    for i in sorted(diamondLog.keys()):
         print i,diamondLog[i]
     return diamondLog
 
@@ -361,16 +361,26 @@ for i in range(0,nDiamonds):
     mainName = 'settings'
     if nDiamonds == 1:
         config.filename = '%s.%d.ini'%(mainName,runNo)
+        corFileName = '%s.%d0.ini'%(mainName,runNo)
     elif i == 0:
         config.filename = '%s.%d-left.ini'%(mainName,runNo)
+        corFileName = '%s.%d1-left.ini'%(mainName,runNo)
     elif i == 1:
         config.filename = '%s.%d-right.ini'%(mainName,runNo)
+        corFileName = '%s.%d2-right.ini'%(mainName,runNo)
     config['diamondName']='%s'%diaNames[i]
     set_settings(config,changes[diaNames[i]])
     writeFile = True
     if os.path.isfile(config.filename):
         writeFile = get_yes_no_answer('Do you want to overwrite "%s"?'%config.filename)
-
     if  writeFile:
         print 'write File %s'%config.filename
         config.write()
+    if not os.path.islink(corFileName) and os.path.exists(corFileName):
+        print 'remove file %s.'%corFileName
+        os.remove(corFileName)
+    if not os.path.islink(corFileName):
+        print 'create link for feed through corrected run'
+        os.symlink(config.filename,corFileName)
+
+    
