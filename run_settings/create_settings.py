@@ -21,7 +21,7 @@ def get_yes_no_answer(question,default=False):
             return default
         elif  answer.startswith('y'):
             return True
-        elif answer.statswith('n'):
+        elif answer.startswith('n'):
             return False
 
 def get_int(question):
@@ -94,20 +94,23 @@ def get_fidCut(question):
             except:
                 pass
     print 'Cannot read fidCut),Please Try again '
-    get_fidCut(question)
+    return get_fidCut(question)
 
         
 
 def get_setting_changes(diaName,allChanges,retry):
     if allChanges.has_key(diaName):
         changes = allChanges[diaName]
+        print 'found "old" changes',changes
     else:
+        print 'No Old Changes for %s'%diaName
         changes = {}
     nChannels = 128
     print 'Settings for diamond "%s"'%diaName
     
 
     while True:
+        firstChannel = None
         if not retry:
             firstChannel = get_int('Get First connected channel: ')
             while not firstChannel in range(0,nChannels-1):
@@ -119,14 +122,21 @@ def get_setting_changes(diaName,allChanges,retry):
                 lastChannel = get_int( 'Get Last  connected channel: ' )
             changes['lastChannel'] = lastChannel
 
+        if nor retry or get_yes_no_answer('Do you want to change masked channels?')
             changes['notConnectedChannels'] = get_set('get not connected Channels: ')
             changes['noisyChannels'] = get_set('get noisy channels: ')
             changes['maskedChannels'] = get_set('get masked channels')
+        if firstChannel != None
             changes['maskedChannels'].update([firstChannel,firstChannel+1,lastChannel-1,lastChannel])
-            print 'Masked Channels: \t%s'%changes['maskedChannels']
+
+        print 'Masked Channels: \t%s'%changes['maskedChannels']
             
         changes['fidCutX'] = get_fidCut('Get fidCutX (e.g. "12 - 55"): ')
         changes['fidCutY'] = get_fidCut('Get fidCutY (e.g. "12 - 55"): ')
+        while changes['fidCutY'] == None:
+            changes['fidCutY'] = get_fidCut('Get fidCutY (e.g. "12 - 55"): ')
+
+        changes['Comment'] = raw_input('Please enter a comment:\t')
         print changes
         if get_yes_no_answer('Are this changes correct?',True):
             return changes
@@ -142,6 +152,10 @@ def set_patterns(config,changes,diaList):
 
     for dia in diaList:
         if not changes.has_key(dia):
+            continue
+        if not changes[dia].has_key('firstChanel'):
+            continue
+        if not changes[dia].has_key('lastChanel'):
             continue
         firstChannel = changes[dia]['firstChannel']
         lastChannel  = changes[dia]['lastChannel']
@@ -159,7 +173,8 @@ def set_patterns(config,changes,diaList):
         i +=1
     for i in range(len(diaList),3):
         key = 'diamondPattern%d'%i
-        config.pop(key)
+        if config.has_key(key):
+            config.pop(key)
 
 
 def set_masked_channels(config,changes):
@@ -262,6 +277,7 @@ invalid = False
 diaNames = []
 retry = False
 i = 0
+changes ={}
 while retry or i ==0:
     i+=1
     while True:
@@ -348,7 +364,6 @@ while retry or i ==0:
     if invalid and len(diaNames)==0:
         diaNames = get_diamond_names(nDiamonds,diamondLogs)
 
-    changes ={}
     for i in range(0,nDiamonds):
         print '\nDefine Settings for diamond no %s'%(i+1)
         changes[diaNames[i]] = get_setting_changes(diaNames[i],changes,retry)
