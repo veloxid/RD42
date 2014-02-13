@@ -122,11 +122,11 @@ def get_setting_changes(diaName,allChanges,retry):
                 lastChannel = get_int( 'Get Last  connected channel: ' )
             changes['lastChannel'] = lastChannel
 
-        if nor retry or get_yes_no_answer('Do you want to change masked channels?')
+        if not retry or get_yes_no_answer('Do you want to change masked channels?'):
             changes['notConnectedChannels'] = get_set('get not connected Channels: ')
             changes['noisyChannels'] = get_set('get noisy channels: ')
             changes['maskedChannels'] = get_set('get masked channels')
-        if firstChannel != None
+        if firstChannel != None:
             changes['maskedChannels'].update([firstChannel,firstChannel+1,lastChannel-1,lastChannel])
 
         print 'Masked Channels: \t%s'%changes['maskedChannels']
