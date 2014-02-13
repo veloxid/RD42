@@ -100,7 +100,7 @@ def get_fidCut(question):
 
 def get_setting_changes(diaName,allChanges,retry):
     if allChanges.has_key(diaName):
-        changes = allChanges[diaName[]]
+        changes = allChanges[diaName]
     else:
         changes = {}
     nChannels = 128
