@@ -98,31 +98,38 @@ def get_fidCut(question):
 
         
 
-def get_setting_changes(diaName,allChanges):
-    changes = {}
+def get_setting_changes(diaName,allChanges,retry):
+    if allChanges.has_key(diaName):
+        changes = allChanges[diaName[]]
+    else:
+        changes = {}
     nChannels = 128
     print 'Settings for diamond "%s"'%diaName
-
-    firstChannel = get_int('Get First connected channel: ')
-    while not firstChannel in range(0,nChannels-1):
-        print 'first channel must be in range  0 - %d'%(nChannels-1)
-        firstChannel = get_int('Get First connected channel: ')
-    changes['firstChannel'] = firstChannel
-    lastChannel  = get_int( 'Get Last  connected channel: ' )
-    while not lastChannel in range(firstChannel+1,nChannels):
-        lastChannel = get_int( 'Get Last  connected channel: ' )
-    changes['lastChannel'] = lastChannel
-
-    changes['notConnectedChannels'] = get_set('get not connected Channels: ')
-    changes['noisyChannels'] = get_set('get noisy channels: ')
-    changes['maskedChannels'] = get_set('get masked channels')
-    changes['maskedChannels'].update([firstChannel,firstChannel+1,lastChannel-1,lastChannel])
-    print 'Masked Channels: \t%s'%changes['maskedChannels']
     
-    changes['fidCutX'] = get_fidCut('Get fidCutX (e.g. "12 - 55"): ')
-    changes['fidCutY'] = get_fidCut('Get fidCutY (e.g. "12 - 55"): ')
-    print changes
-    return changes
+
+    while True:
+        if not retry:
+            firstChannel = get_int('Get First connected channel: ')
+            while not firstChannel in range(0,nChannels-1):
+                print 'first channel must be in range  0 - %d'%(nChannels-1)
+                firstChannel = get_int('Get First connected channel: ')
+            changes['firstChannel'] = firstChannel
+            lastChannel  = get_int( 'Get Last  connected channel: ' )
+            while not lastChannel in range(firstChannel+1,nChannels):
+                lastChannel = get_int( 'Get Last  connected channel: ' )
+            changes['lastChannel'] = lastChannel
+
+            changes['notConnectedChannels'] = get_set('get not connected Channels: ')
+            changes['noisyChannels'] = get_set('get noisy channels: ')
+            changes['maskedChannels'] = get_set('get masked channels')
+            changes['maskedChannels'].update([firstChannel,firstChannel+1,lastChannel-1,lastChannel])
+            print 'Masked Channels: \t%s'%changes['maskedChannels']
+            
+        changes['fidCutX'] = get_fidCut('Get fidCutX (e.g. "12 - 55"): ')
+        changes['fidCutY'] = get_fidCut('Get fidCutY (e.g. "12 - 55"): ')
+        print changes
+        if get_yes_no_answer('Are this changes correct?',True):
+            return changes
 
 def removekey(d, key):
         r = dict(d)
@@ -253,134 +260,137 @@ for i in config:
 diamondLog = get_diamond_log()
 invalid = False
 diaNames = []
-while True:
-    runNo = get_int('What run no?')
-    events = get_int('How many Events?')
-    if diamondLog.has_key(runNo) and not invalid:
-        try:
-            voltage = int(diamondLog[runNo]['voltage'])
-        except:
-            print 'cannot convert "%s"'%diamondLog[runNo]['voltage']
+retry = False
+i = 0
+while retry or i ==0:
+    i+=1
+    while True:
+        runNo = get_int('What run no?')
+        events = get_int('How many Events?')
+        if diamondLog.has_key(runNo) and not invalid:
+            try:
+                voltage = int(diamondLog[runNo]['voltage'])
+            except:
+                print 'cannot convert "%s"'%diamondLog[runNo]['voltage']
+                voltage =get_int("What voltage?")
+        else:
             voltage =get_int("What voltage?")
-    else:
-        voltage =get_int("What voltage?")
 
-    if diamondLog.has_key(runNo) and not invalid:
-        try:
-            repeaterCard = diamondLog[runNo]['repeaterCard']
-            if '?' in repeaterCard:
-                repeaterCard = -1
-            else:
-                repeaterCard = int(repeaterCard)
-        except:
-            print 'cannot convert "%s"'%diamondLog[runNo]['repeaterCard']
+        if diamondLog.has_key(runNo) and not invalid:
+            try:
+                repeaterCard = diamondLog[runNo]['repeaterCard']
+                if '?' in repeaterCard:
+                    repeaterCard = -1
+                else:
+                    repeaterCard = int(repeaterCard)
+            except:
+                print 'cannot convert "%s"'%diamondLog[runNo]['repeaterCard']
+                repeaterCard = get_int("Which repeater card no?")
+        else:
             repeaterCard = get_int("Which repeater card no?")
-    else:
-        repeaterCard = get_int("Which repeater card no?")
 
-    if diamondLog.has_key(runNo) and not invalid:
-        try:
-            currentBegin = diamondLog[runNo]['currentBegin']
-            if currentBegin == '' or '?' in currentBegin:
-                currentBegin = -1
-            elif '<' in currentBegin:
-                currentBegin = float(currentBegin.strip('< '))
-            else:
-                currentBegin = float(currentBegin)
-        except:
-            print 'cannot convert "%s"'%diamondLog[runNo]['currentBegin']
+        if diamondLog.has_key(runNo) and not invalid:
+            try:
+                currentBegin = diamondLog[runNo]['currentBegin']
+                if currentBegin == '' or '?' in currentBegin:
+                    currentBegin = -1
+                elif '<' in currentBegin:
+                    currentBegin = float(currentBegin.strip('< '))
+                else:
+                    currentBegin = float(currentBegin)
+            except:
+                print 'cannot convert "%s"'%diamondLog[runNo]['currentBegin']
+                currentBegin = get_float('Current Begin? ')
+        else:
             currentBegin = get_float('Current Begin? ')
-    else:
-        currentBegin = get_float('Current Begin? ')
 
-    if diamondLog.has_key(runNo) and not invalid:
-        try:
-            currentEnd = diamondLog[runNo]['currentEnd']
-            if currentEnd =='' or '?' in currentEnd:
-                currentEnd = -1
-            elif '<' in currentEnd:
-                currentEnd = float(currentEnd.strip('< '))
-            else:
-                currentEnd = float(currentEnd)
-        except:
-            print 'cannot convert "%s"'%diamondLog[runNo]['currentEnd']
+        if diamondLog.has_key(runNo) and not invalid:
+            try:
+                currentEnd = diamondLog[runNo]['currentEnd']
+                if currentEnd =='' or '?' in currentEnd:
+                    currentEnd = -1
+                elif '<' in currentEnd:
+                    currentEnd = float(currentEnd.strip('< '))
+                else:
+                    currentEnd = float(currentEnd)
+            except:
+                print 'cannot convert "%s"'%diamondLog[runNo]['currentEnd']
+                currentEnd   = get_float('Current End?')
+        else:
             currentEnd   = get_float('Current End?')
-    else:
-        currentEnd   = get_float('Current End?')
 
-    if diamondLog.has_key(runNo) and not invalid:
-        try:
-            nDiamonds = len(diamondLog[runNo]['dia'])
-            diaNames = diamondLog[runNo]['dia']
-        except:
-            print 'cannot convert: ',diamondLog[runNo]['dia']
+        if diamondLog.has_key(runNo) and not invalid:
+            try:
+                nDiamonds = len(diamondLog[runNo]['dia'])
+                diaNames = diamondLog[runNo]['dia']
+            except:
+                print 'cannot convert: ',diamondLog[runNo]['dia']
+                nDiamonds = get_int('How many diamonds?')
+        else:
             nDiamonds = get_int('How many diamonds?')
-    else:
-        nDiamonds = get_int('How many diamonds?')
+                
+        print ''
+        print 'RunNo:          %7s'%runNo
+        print 'Events:         %7s'%events
+        print 'Voltage:        %5s V'%voltage
+        print 'RepeaterCard:   %7s'%repeaterCard
+        print 'current Begin:  %7.1f'%currentBegin
+        print 'current End:    %7.1f'%currentEnd
+        print 'No of Diamonds: %7s'%nDiamonds
+        if len(diaNames):
+            print 'Names of Diamonds: %s'%diaNames
             
-    print ''
-    print 'RunNo:          %7s'%runNo
-    print 'Events:         %7s'%events
-    print 'Voltage:        %5s V'%voltage
-    print 'RepeaterCard:   %7s'%repeaterCard
-    print 'current Begin:  %7.1f'%currentBegin
-    print 'current End:    %7.1f'%currentEnd
-    print 'No of Diamonds: %7s'%nDiamonds
-    if len(diaNames):
-        print 'Names of Diamonds: %s'%diaNames
-        
-    if is_correct():
-        break
-    else:
-        invalid = True
+        if is_correct():
+            break
+        else:
+            invalid = True
 
-if invalid and len(diaNames)==0:
-    diaNames = get_diamond_names(nDiamonds,diamondLogs)
+    if invalid and len(diaNames)==0:
+        diaNames = get_diamond_names(nDiamonds,diamondLogs)
+
+    changes ={}
+    for i in range(0,nDiamonds):
+        print '\nDefine Settings for diamond no %s'%(i+1)
+        changes[diaNames[i]] = get_setting_changes(diaNames[i],changes,retry)
 
 
+    config['runNo'] = '%s'%runNo
+    config['Events'] = '%s'%events
+    config['voltage'] = '%s'%voltage
+    config['repeaterCardNo'] = '%s'%repeaterCard
+    config['currentBegin'] = '%s'%currentBegin
+    config['currentEnd'] = '%s'%currentEnd
+    config['nDiamonds'] = nDiamonds
 
-changes ={}
-for i in range(0,nDiamonds):
-    print '\nDefine Settings for diamond no %s'%(i+1)
-    changes[diaNames[i]] = get_setting_changes(diaNames[i],changes)
+    set_masked_channels(config,changes)
+    set_patterns(config,changes,diaNames)
+    set_selection_fidCuts(config,changes,diaNames)
 
-
-config['runNo'] = '%s'%runNo
-config['Events'] = '%s'%events
-config['voltage'] = '%s'%voltage
-config['repeaterCardNo'] = '%s'%repeaterCard
-config['currentBegin'] = '%s'%currentBegin
-config['currentEnd'] = '%s'%currentEnd
-config['nDiamonds'] = nDiamonds
-
-set_masked_channels(config,changes)
-set_patterns(config,changes,diaNames)
-set_selection_fidCuts(config,changes,diaNames)
-
-for i in range(0,nDiamonds):
-    mainName = 'settings'
-    if nDiamonds == 1:
-        config.filename = '%s.%d.ini'%(mainName,runNo)
-        corFileName = '%s.%d0.ini'%(mainName,runNo)
-    elif i == 0:
-        config.filename = '%s.%d-left.ini'%(mainName,runNo)
-        corFileName = '%s.%d1-left.ini'%(mainName,runNo)
-    elif i == 1:
-        config.filename = '%s.%d-right.ini'%(mainName,runNo)
-        corFileName = '%s.%d2-right.ini'%(mainName,runNo)
-    config['diamondName']='%s'%diaNames[i]
-    set_settings(config,changes[diaNames[i]])
-    writeFile = True
-    if os.path.isfile(config.filename):
-        writeFile = get_yes_no_answer('Do you want to overwrite "%s"?'%config.filename)
-    if  writeFile:
-        print 'write File %s'%config.filename
-        config.write()
-    if not os.path.islink(corFileName) and os.path.exists(corFileName):
-        print 'remove file %s.'%corFileName
-        os.remove(corFileName)
-    if not os.path.islink(corFileName):
-        print 'create link for feed through corrected run'
-        os.symlink(config.filename,corFileName)
+    for i in range(0,nDiamonds):
+        mainName = 'settings'
+        if nDiamonds == 1:
+            config.filename = '%s.%d.ini'%(mainName,runNo)
+            corFileName = '%s.%d0.ini'%(mainName,runNo)
+        elif i == 0:
+            config.filename = '%s.%d-left.ini'%(mainName,runNo)
+            corFileName = '%s.%d1-left.ini'%(mainName,runNo)
+        elif i == 1:
+            config.filename = '%s.%d-right.ini'%(mainName,runNo)
+            corFileName = '%s.%d2-right.ini'%(mainName,runNo)
+        config['diamondName']='%s'%diaNames[i]
+        set_settings(config,changes[diaNames[i]])
+        writeFile = True
+        if os.path.isfile(config.filename):
+            writeFile = get_yes_no_answer('Do you want to overwrite "%s"?'%config.filename)
+        if  writeFile:
+            print 'write File %s'%config.filename
+            config.write()
+        if not os.path.islink(corFileName) and os.path.exists(corFileName):
+            print 'remove file %s.'%corFileName
+            os.remove(corFileName)
+        if not os.path.islink(corFileName):
+            print 'create link for feed through corrected run'
+            os.symlink(config.filename,corFileName)
+    retry = get_yes_no_answer('Do you want to enter another run of same testbeam and same diamonds?')
 
     
