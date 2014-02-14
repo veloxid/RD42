@@ -236,7 +236,7 @@ def set_settings(config,changes):
             config[i] = changes[i]
     
 
-def get_diamond_names(nDiamonds):
+def get_diamond_names(nDiamonds,diaLog):
     diaNames = ['']*nDiamonds
     while True:
         for i in range(0,nDiamonds):
@@ -247,6 +247,7 @@ def get_diamond_names(nDiamonds):
         if is_correct():
             return diaNames
             break
+
 def get_diamond_log():
     diamondLog = {}
     f = open('runDetails.log')
@@ -353,21 +354,19 @@ while retry or i ==0:
         print 'current Begin:  %7.1f'%currentBegin
         print 'current End:    %7.1f'%currentEnd
         print 'No of Diamonds: %7s'%nDiamonds
-        if len(diaNames):
-            print 'Names of Diamonds: %s'%diaNames
+        print 'Names of Diamonds: %s'%diaNames
             
         if is_correct():
             break
         else:
             invalid = True
 
-    if invalid and len(diaNames)==0:
-        diaNames = get_diamond_names(nDiamonds,diamondLogs)
+    if invalid or len(diaNames)==0:
+        diaNames = get_diamond_names(nDiamonds,diamondLog)
 
     for i in range(0,nDiamonds):
         print '\nDefine Settings for diamond no %s'%(i+1)
         changes[diaNames[i]] = get_setting_changes(diaNames[i],changes,retry)
-
 
     config['runNo'] = '%s'%runNo
     config['Events'] = '%s'%events
@@ -406,6 +405,8 @@ while retry or i ==0:
         if not os.path.islink(corFileName):
             print 'create link for feed through corrected run'
             os.symlink(config.filename,corFileName)
-    retry = get_yes_no_answer('Do you want to enter another run of same testbeam and same diamonds?')
+    retry = get_yes_no_answer('Do you want to enter another run of same testbeam and same diamonds?',True)
+    if not retry:
+        exit()
 
     
