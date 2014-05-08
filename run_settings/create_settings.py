@@ -147,15 +147,20 @@ def removekey(d, key):
         return r
 
 def set_patterns(config,changes,diaList):
+    print 'set patterns'
     i = 0
     pos = 0
+    print 'changes',changes,changes.keys()
 
     for dia in diaList:
         if not changes.has_key(dia):
+            print 'does not has a change'
             continue
-        if not changes[dia].has_key('firstChanel'):
+        if not changes[dia].has_key('firstChannel'):
+            print 'does not have key firstChannel'
             continue
-        if not changes[dia].has_key('lastChanel'):
+        if not changes[dia].has_key('lastChannel'):
+            print 'does not have key lastChannel'
             continue
         firstChannel = changes[dia]['firstChannel']
         lastChannel  = changes[dia]['lastChannel']
@@ -163,9 +168,11 @@ def set_patterns(config,changes,diaList):
 
         #diamondPattern = {0,50,6,61};
         diamondPattern =  '{%d,%d,%d,%d}'%(pos,pitchWidth,firstChannel,lastChannel)
+        print diamondPattern
         key = 'diamondPattern%d'%i
         changes[dia][key] = diamondPattern
         config[key] = diamondPattern
+        print dia,key,changes[dia][key],config[key]
         changes[dia] =  removekey(changes[dia],'firstChannel')
         changes[dia] =  removekey(changes[dia],'lastChannel')
         pos = lastChannel*pitchWidth+300 
@@ -174,6 +181,7 @@ def set_patterns(config,changes,diaList):
     for i in range(len(diaList),3):
         key = 'diamondPattern%d'%i
         if config.has_key(key):
+            print 'pop ' ,key
             config.pop(key)
 
 
@@ -265,6 +273,13 @@ def get_diamond_log():
     for i in sorted(diamondLog.keys()):
         print i,diamondLog[i]
     return diamondLog
+
+
+#import argparse
+#parser = argparse.ArgumentParser()
+#parser.add_argument("-f", "--file", default='example.ini')
+#parser.parse_args()
+#print parser.file
 
 
 config = ConfigObj('example.ini',raise_errors=True,list_values=False,)
