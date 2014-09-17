@@ -299,6 +299,13 @@ while retry or i ==0:
     while True:
         runNo = get_int('What run no?')
         events = get_int('How many Events?')
+        if i == 0:
+            sirocco = -1 
+            while not sirocco in [0,1]
+                sirocco = get_int('Which sirocco?')
+                if sirocco in [4,5]:
+                    sirocco -= 4
+
         if diamondLog.has_key(runNo) and not invalid:
             try:
                 voltage = int(diamondLog[runNo]['voltage'])
@@ -364,6 +371,7 @@ while retry or i ==0:
         print ''
         print 'RunNo:          %7s'%runNo
         print 'Events:         %7s'%events
+        print 'Dia input       %7s'%sirocco
         print 'Voltage:        %5s V'%voltage
         print 'RepeaterCard:   %7s'%repeaterCard
         print 'current Begin:  %7.1f'%currentBegin
@@ -385,6 +393,7 @@ while retry or i ==0:
 
     config['runNo'] = '%s'%runNo
     config['Events'] = '%s'%events
+    config['dia_input'] = '%s'%sirocco
     config['voltage'] = '%s'%voltage
     config['repeaterCardNo'] = '%s'%repeaterCard
     config['currentBegin'] = '%s'%currentBegin
